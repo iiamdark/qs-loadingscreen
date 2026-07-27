@@ -11,8 +11,8 @@ export default defineConfig({
     build: {
         outDir: 'build',
         target: 'esnext',
-        sourcemap: true,
-        cssMinify: false,
+        sourcemap: false,
+        cssMinify: true,
     },
     resolve: {
         alias: {

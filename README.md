@@ -162,4 +162,10 @@ Use the `[Cclass1 class2]text[/C]` syntax in `config.json`:
 
 This fork maintains the **LGPLv3** license from the original project.
 
+## ⚠️ Windows Defender False Positive Notice
+
+The `.js` files in this project are minified/bundled by Vite (a standard React build tool). Windows Defender may occasionally flag these as `Trojan:Script/Wacatac.B!ml` — this is a **known false positive** caused by the ML heuristic detecting patterns in minified JavaScript that resemble obfuscated code. The source code is fully open and auditable at this repository. If you get this warning, you can safely allow the file, or rebuild from source using `npm run build` in the `web/` directory.
+
+---
+
 Originally created by [Quasar Store](https://www.quasar-store.com/) · Temporary fix by [iiamdark](https://github.com/iiamdark)
