@@ -1,93 +1,95 @@
-# 🚨 QS-LoadingScreen - Fork con Fix Temporal
+# 🚨 QS-LoadingScreen — Temporary Fix Fork
 
-> **⚠️ AVISO IMPORTANTE:** Este repositorio es un **fork temporal** del [qs-loadingscreen original](https://github.com/emanueldev1/qs-loadingscreen) de **Quasar Store**.  
-> Los cambios aquí implementados son **parches temporales** hasta que Quasar Store publique una actualización oficial con las correcciones definitivas.
-
----
-
-## 🐛 Bugs Corregidos (Fix Temporal)
-
-### 1. ❌ Video y música no se reproducían
-
-**Causa:** Los componentes `<ReactPlayer>` usaban `src={url}` en lugar de `url={url}`. ReactPlayer **no acepta** `src` como prop — la prop correcta es `url`. Esto impedía que tanto el video de fondo como el reproductor de música se cargaran.
-
-**Solución:** Cambiado `src` → `url` en ambos reproductores. También se añadieron configuraciones adicionales de YouTube (`iv_load_policy: 3`, `fs: 0`, `disablekb: 1`) y `playsInline` para mejor compatibilidad.
-
-### 2. ❌ Estado del servidor y ping no cargaban
-
-**Causa:** La API de FiveM (`servers-frontend.fivem.net`) está protegida por Cloudflare y bloquea peticiones sin headers de navegador. Además:
-- El `serverId` por defecto era un placeholder inválido (`"serverConnectId like 3qyo9t"`)
-- El endpoint original puede cambiar o caerse sin fallback
-
-**Solución:**
-- Añadidos headers `User-Agent`, `Accept`, `Accept-Language`, `Referer` para evitar bloqueos de Cloudflare
-- **Doble endpoint:** primero intenta `frontend.cfx-services.net` (nuevo) y si falla, usa `servers-frontend.fivem.net` (legacy)
-- **Validación de Server ID:** detecta placeholders y muestra advertencia clara en consola
-- Polling reducido de 5s → 15s para evitar rate-limiting
-
-### 3. 🧹 Componente AudioControls
-
-**Causa:** El componente `AudioControls` recibía props (`toggleAudioSource`, `audioSource`) que **nunca se pasaban** desde el componente padre, causando comportamiento indefinido.
-
-**Solución:** Eliminadas las props no utilizadas y el código muerto comentado. Añadida protección `playerRef?.current` con try/catch para evitar errores cuando el player interno no está listo.
-
-### 4. 📝 jsconfig.json inválido
-
-**Causa:** Trailing comma (coma final) en el array `"include"`, lo cual es JSON inválido y causaba error en el editor.
-
-**Solución:** Eliminada la coma final.
+> **⚠️ IMPORTANT NOTICE:** This repository is a **temporary fork** of the original [qs-loadingscreen](https://github.com/emanueldev1/qs-loadingscreen) by **Quasar Store**.  
+> All changes here are **temporary patches** until Quasar Store publishes an official update with the definitive fixes.
 
 ---
 
-## 🚀 Instalación Rápida
+## 🐛 Fixed Bugs (Temporary Patch)
 
-### Opción 1: Desde release (recomendado)
+### 1. ❌ Video and Music Not Playing
 
-1. Descarga el último `release.zip` desde [Releases](https://github.com/iiamdark/qs-loadingscreen/releases)
-2. Extrae la carpeta `qs-loadingscreen` en la carpeta `resources` de tu servidor FiveM
-3. Añade al `server.cfg`:
+**Root cause:** The `<ReactPlayer>` components used `src={url}` instead of `url={url}`. ReactPlayer **does not accept** `src` as a prop — the correct prop is `url`. This prevented both the background video and the music player from loading.
+
+**Fix:** Changed `src` → `url` on both players. Added additional YouTube configuration (`iv_load_policy: 3`, `fs: 0`, `disablekb: 1`) and `playsInline` for better compatibility.
+
+### 2. ❌ Server Status and Ping Not Loading
+
+**Root cause:** The FiveM API (`servers-frontend.fivem.net`) is protected by Cloudflare and blocks requests without browser headers. Additionally:
+- The default `serverId` was an invalid placeholder (`"serverConnectId like 3qyo9t"`)
+- The original endpoint can change or go down without a fallback
+
+**Fix:**
+- Added `User-Agent`, `Accept`, `Accept-Language`, `Referer` headers to bypass Cloudflare blocks
+- **Dual endpoint:** tries `frontend.cfx-services.net` first (new), falls back to `servers-frontend.fivem.net` (legacy)
+- **Server ID validation:** detects placeholders and shows a clear warning in console
+- Reduced polling from 5s → 15s to avoid rate-limiting
+
+### 3. 🧹 AudioControls Component
+
+**Root cause:** The `AudioControls` component received props (`toggleAudioSource`, `audioSource`) that were **never passed** from the parent component, causing undefined behavior.
+
+**Fix:** Removed unused props and dead commented-out code. Added `playerRef?.current` null safety with try/catch to prevent errors when the internal player isn't ready.
+
+### 4. 📝 Invalid jsconfig.json
+
+**Root cause:** Trailing comma in the `"include"` array, which is invalid JSON and caused editor errors.
+
+**Fix:** Removed the trailing comma.
+
+---
+
+## 🚀 Quick Installation
+
+### Option 1: From Release (recommended)
+
+1. Download the latest `release.zip` from [Releases](https://github.com/iiamdark/qs-loadingscreen/releases)
+2. Extract the `qs-loadingscreen` folder into your FiveM server's `resources` folder
+3. Add to your `server.cfg`:
    ```lua
    ensure qs-loadingscreen
    ```
-4. **IMPORTANTE:** Edita `config.json` y cambia el `serverId` por el ID de tu servidor
+4. **IMPORTANT:** Edit `config.json` and change the `serverId` to your server's ID
 
-### Opción 2: Compilar desde código fuente
+### Option 2: Build from Source
 
 ```bash
-# Clonar el repositorio
+# Clone the repository
 git clone https://github.com/iiamdark/qs-loadingscreen.git
 cd qs-loadingscreen/web
 
-# Instalar dependencias
+# Install dependencies
 npm install
 
-# Compilar
+# Build
 npm run build
 
-# Copiar la carpeta web/build a tu servidor FiveM
+# Copy the web/build folder to your FiveM server
 ```
 
-### Opción 3: Ver preview en navegador
+### Option 3: Preview in Browser
 
 ```bash
 cd web
 npm run dev
-# Abre http://localhost:5173
+# Open http://localhost:5173
 ```
+
+> **Note:** The FiveM server API will show "OFFLINE" in your browser due to CORS policies, but it works correctly inside FiveM.
 
 ---
 
-## ⚙️ Configuración
+## ⚙️ Configuration
 
-Edita `config.json` con los datos de **tu servidor**:
+Edit `config.json` with **your server's** details:
 
 ```json
 {
     "server": {
-        "serverId": "TU_SERVER_ID_AQUI",  ← Cámbialo por tu Server ID (ej: "6r9ob4")
+        "serverId": "YOUR_SERVER_ID_HERE",
         "titleMode": "mixed",
-        "title": "MI SERVIDOR [Ctext-primary font-bold]ROLEPLAY[/C]",
-        "logoUrl": "https://tuservidor.com/logo.png"
+        "title": "MY SERVER [Ctext-primary font-bold]ROLEPLAY[/C]",
+        "logoUrl": "https://yourserver.com/logo.png"
     },
     "audio": {
         "enabled": true,
@@ -104,60 +106,60 @@ Edita `config.json` con los datos de **tu servidor**:
 }
 ```
 
-### ¿Dónde encuentro mi Server ID?
+### Where do I find my Server ID?
 
-1. Ve a https://servers.fivem.net/
-2. Busca tu servidor
-3. Haz clic en tu servidor para abrir la página de detalle
-4. El Server ID es el código en la URL: `https://servers.fivem.net/servers/detail/XXXXXX`
+1. Go to https://servers.fivem.net/
+2. Search for your server
+3. Click your server to open the detail page
+4. The Server ID is the code in the URL: `https://servers.fivem.net/servers/detail/XXXXXX`
 
 ---
 
-## 📁 Estructura del Proyecto
+## 📁 Project Structure
 
 ```
 qs-loadingscreen/
-├── client.lua                  # Lógica de cliente FiveM
-├── fxmanifest.lua              # Manifiesto del recurso
-├── config.json                 # Configuración principal
+├── client.lua                  # FiveM client logic
+├── fxmanifest.lua              # Resource manifest
+├── config.json                 # Main configuration (copied to web/build/)
 ├── web/
-│   ├── build/                  # Archivos compilados (output)
+│   ├── build/                  # Compiled output
 │   ├── src/
-│   │   ├── index.jsx           # Componente principal
+│   │   ├── index.jsx           # Root component
 │   │   ├── screens/quasar/
-│   │   │   └── index.jsx       # Lógica de la loading screen
-│   │   ├── components/ui/      # Componentes UI
-│   │   └── lib/utils.js        # Utilidades
-│   ├── public/config.json      # ⚡ Misma config que la raíz
+│   │   │   └── index.jsx       # Main loading screen logic
+│   │   ├── components/ui/      # UI components
+│   │   └── lib/utils.js        # Utilities
+│   ├── public/config.json      # Same config as root (copied to build/)
 │   └── package.json
 ```
 
 ---
 
-## 🎨 Personalización
+## 🎨 Customization
 
-### Colores
-Edita `web/src/index.css` — variables CSS en `:root` y `.dark`:
+### Colors
+Edit `web/src/index.css` — CSS variables in `:root` and `.dark`:
 ```css
---primary: 199 100% 50%;    /* Azul vibrante */
---secondary: 180 100% 50%;  /* Cian neón */
---background: 240 10% 5%;   /* Fondo oscuro */
+--primary: 199 100% 50%;    /* Vibrant blue */
+--secondary: 180 100% 50%;  /* Neon cyan */
+--background: 240 10% 5%;   /* Dark background */
 ```
 
-### Textos con estilos
-Usa la sintaxis `[Cclase1 clase2]texto[/C]` en `config.json`:
+### Styled Text
+Use the `[Cclass1 class2]text[/C]` syntax in `config.json`:
 ```json
 {
     "server": {
-        "title": "MI SERVER [Ctext-red-600 font-bold]RP[/C]"
+        "title": "MY SERVER [Ctext-red-600 font-bold]RP[/C]"
     }
 }
 ```
 
 ---
 
-## 📄 Licencia
+## 📄 License
 
-Este fork mantiene la licencia **LGPLv3** del proyecto original.
+This fork maintains the **LGPLv3** license from the original project.
 
-Creado originalmente por [Quasar Store](https://www.quasar-store.com/) · Fix temporal por [iiamdark](https://github.com/iiamdark)
+Originally created by [Quasar Store](https://www.quasar-store.com/) · Temporary fix by [iiamdark](https://github.com/iiamdark)
