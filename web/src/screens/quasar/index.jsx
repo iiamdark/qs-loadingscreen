@@ -69,28 +69,59 @@ export default function QuasarLoadingScreen() {
     useEffect(() => {
         if (!config) return
 
+        const serverId = config.server.serverId
+        // Skip fetch if serverId is still a placeholder
+        if (!serverId || serverId.includes('serverConnectId') || serverId.includes('like')) {
+            console.warn('[qs-loadingscreen] Please set a valid serverId in config.json (e.g., "3qyo9t")')
+            setServerStatus("UNKNOWN")
+            setPlayerCount(0)
+            setMaxPlayers(0)
+            setAvgPing(0)
+            return
+        }
+
         const fetchServerData = () => {
-            fetch(`https://servers-frontend.fivem.net/api/servers/single/${config.server.serverId}`)
-                .then((res) => res.json())
+            const headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'application/json, text/plain, */*',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Referer': 'https://servers.fivem.net/',
+            }
+
+            const fetchWithEndpoint = (endpoint) => {
+                return fetch(endpoint, { headers })
+                    .then((res) => {
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+                        return res.json()
+                    })
+            }
+
+            // Try the primary endpoint first, fallback to the legacy endpoint
+            const primaryUrl = `https://frontend.cfx-services.net/api/servers/single/${serverId}`
+            const fallbackUrl = `https://servers-frontend.fivem.net/api/servers/single/${serverId}`
+
+            fetchWithEndpoint(primaryUrl)
+                .catch(() => fetchWithEndpoint(fallbackUrl))
                 .then((data) => {
                     if (data.error) {
-                        console.error('Failed to fetch server details, provide a valid config serverId...')
+                        console.error('[qs-loadingscreen] Server API returned an error. Verify your serverId in config.json.')
                         setServerStatus("OFFLINE")
                         setPlayerCount(0)
                         setMaxPlayers(0)
                         setAvgPing(0)
                     } else {
-                        const serverData = data.Data
-                        setPlayerCount(serverData.clients || 0)
-                        setMaxPlayers(serverData.sv_maxclients || 0)
-                        const pings = serverData.players?.map((p) => p.ping) || []
+                        const serverData = data.Data || data
+                        setPlayerCount(serverData.clients || serverData.players?.length || 0)
+                        setMaxPlayers(serverData.sv_maxclients || serverData.maxClients || 0)
+                        const players = serverData.players || []
+                        const pings = players.map((p) => p.ping).filter(Boolean)
                         const avg = pings.length > 0 ? Math.round(pings.reduce((a, b) => a + b, 0) / pings.length) : 0
                         setAvgPing(avg)
                         setServerStatus("ONLINE")
                     }
                 })
                 .catch((err) => {
-                    console.error("Error fetching server data:", err)
+                    console.error('[qs-loadingscreen] Error fetching server data:', err.message)
                     setServerStatus("OFFLINE")
                     setPlayerCount(0)
                     setMaxPlayers(0)
@@ -99,7 +130,7 @@ export default function QuasarLoadingScreen() {
         }
 
         fetchServerData()
-        const interval = setInterval(fetchServerData, 5000)
+        const interval = setInterval(fetchServerData, 15000)
         return () => clearInterval(interval)
     }, [config])
 
@@ -248,7 +279,7 @@ export default function QuasarLoadingScreen() {
                 >
                     <ReactPlayer
                         ref={videoRef}
-                        src={config.background.videoUrl}
+                        url={config.background.videoUrl}
                         playing={playing}
                         loop={config.background.loop}
                         muted={videoMuted}
@@ -257,13 +288,12 @@ export default function QuasarLoadingScreen() {
                         height="100%"
                         style={{ position: 'absolute', top: 0, left: 0, objectFit: 'cover' }}
                         onReady={(...data) => {
-                            // console.log(...data)
-                            handleVideoReady(...data)
+                            handleVideoReady()
                         }}
                         onPlay={() => {
                             handleVideoReady()
                         }}
-                        onError={handleVideoError}
+                        onError={(e) => handleVideoError(e)}
                         config={{
                             youtube: {
                                 playerVars: {
@@ -271,25 +301,30 @@ export default function QuasarLoadingScreen() {
                                     showinfo: 0,
                                     rel: 0,
                                     modestbranding: 1,
-                                    autoplay: 1
+                                    autoplay: 1,
+                                    iv_load_policy: 3,
+                                    fs: 0,
+                                    disablekb: 1
                                 }
                             },
                             file: {
                                 attributes: {
-                                    preload: 'auto'
+                                    preload: 'auto',
+                                    playsInline: true
                                 }
                             }
                         }}
                     />
                 </motion.div>
             )}
-            {config.audio.url && !config.audio.useVideoAudio && (
+            {config.audio.enabled && config.audio.url && !config.audio.useVideoAudio && (
                 <ReactPlayer
                     ref={audioRef}
-                    src={config.audio.url}
+                    url={config.audio.url}
                     playing={!musicMuted && playing}
                     loop={config.audio.loop}
                     volume={volume}
+                    muted={false}
                     style={{ display: 'none' }}
                     config={{
                         youtube: {
@@ -298,12 +333,16 @@ export default function QuasarLoadingScreen() {
                                 showinfo: 0,
                                 rel: 0,
                                 modestbranding: 1,
-                                autoplay: 1
+                                autoplay: 1,
+                                iv_load_policy: 3,
+                                fs: 0,
+                                disablekb: 1
                             }
                         },
                         file: {
                             attributes: {
-                                preload: 'auto'
+                                preload: 'auto',
+                                playsInline: true
                             }
                         }
                     }}

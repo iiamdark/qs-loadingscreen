@@ -1,6 +1,6 @@
 {
     "server": {
-        "serverId": "serverConnectId like 3qyo9t",
+        "serverId": "6r9ob4",
         "titleMode": "mixed",
         "title": "QUASAR [Ctext-primary font-bold]ROLEPLAY[/C]",
         "logoUrl": "https://assets.quasar-store.com/quasar-loadingscreen.png",
@@ -161,7 +161,7 @@
     },
     "background": {
         "type": "video",
-        "videoUrl": "https://youtu.be/nF9qH5B01X4?t=6",
+        "videoUrl": "https://www.youtube.com/watch?v=nF9qH5B01X4&t=6",
         "loop": true,
         "startFrom": 6
     },
